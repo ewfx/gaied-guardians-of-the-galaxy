@@ -77,7 +77,7 @@ def extract_attachments(msg):
                 try:
                     with open(filepath, "wb") as f:
                         f.write(part.get_payload(decode=True))
-                    attachments.append(os.path.basename(filepath))  # Store full file path for reference
+                    attachments.append(filepath)  # Store full file path for reference
                 except Exception as e:
                     print(f"Error saving attachment {filename}: {e}")
     
@@ -131,11 +131,12 @@ def process_emails(upload_folder, config):
             extracted_fields = extract_fields(email_data["body"])
             sender_intent, reasoning = generate_intent_and_reasoning(email_data["body"])
             
-
+# Handle list of attachments
+            attachment_filenames = [os.path.basename(attachment) for attachment in email_data["attachments"]]
             result = {
                "file": filename, "subject": email_data["subject"],
                 "request_type": classification["request_type"], "sub_request_type": classification["sub_request_type"],
-                "confidence_score": classification["confidence_score"], "attachments": email_data["attachments"],
+                "confidence_score": classification["confidence_score"], "attachments": attachment_filenames,
                 "senders_intent": sender_intent, "department": classification["department"],"reasoning": reasoning
             }
 

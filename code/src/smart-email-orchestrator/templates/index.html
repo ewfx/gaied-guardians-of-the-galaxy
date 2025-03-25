@@ -2,287 +2,347 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Email Processor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Email Orchestrator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-    <!-- JSON Viewer Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap');
-        
         body {
-            font-family: 'SF Pro Display', sans-serif;
-            background: linear-gradient(to right, #f5f5f7, #dfe4ea);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            background: linear-gradient(135deg, #f4f7fb, #eef1f6);
+            font-family: 'Inter', sans-serif;
+            color: #2d3748;
         }
-        .header {
-            color: #ffff;
-            width: 100%;
+        .hero-banner {
             background: #d71e28;
-            padding: 15px;
+            color: white;
+            padding: 12px 15px;
             text-align: center;
-            font-size: 25px;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
-        .container {
-            max-width: 500px;
-            text-align: center;
-            margin-top: 50px;
+        .info-cards .card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), inset 0 0 0.5px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    padding: 30px 20px;
+    height: 90% !important;
+}
+.info-cards .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255, 255, 255, 0.6);
+}
+.info-cards .card i {
+    font-size: 2.6rem;
+    margin-bottom: 16px;
+    text-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+.info-cards .card h6 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.info-cards .card p {
+    font-size: 0.95rem;
+    color: #555;
+}
+#emailTable th {
+            white-space: nowrap;
+            background-color: #e3e8f0;
+            font-weight: 700;
+            border-bottom: 2px solid #ced4da;
+            padding: 10px 16px;
+            color: #2c3e50;
+            text-transform: capitalize;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            margin-top: 6%;
+        #emailTable td {
+            white-space: nowrap;
+            padding: 8px 14px;
+            border-top: 1px solid #dee2e6;
+            vertical-align: middle;
+            color: #343a40;
+            background-color: #ffffff;
+            overflow: visible;
+            text-overflow: initial;
         }
-        .dropzone {
-            border: 2px dashed #06c;
-            padding: 30px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 14px;
-            transition: all 0.3s ease;
+        #emailTable tr:nth-child(even) td {
+            background-color: #f6f8fa;
         }
-        .dropzone:hover {
-            background: rgba(255, 255, 255, 0.9);
+        #emailTable tr:hover td {
+            background-color: #e9f5ff;
+            transition: background-color 0.3s ease;
         }
-        .btn-primary, .btn-success {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background-color: #0071e3;
-            border: none;
-            font-size: 16px;
+        .table-responsive {
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
             border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            padding: 12px 16px;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
-        .btn-primary:hover, .btn-success:hover {
-            background-color: #005ecb;
-            box-shadow: 0 6px 16px rgba(0, 94, 203, 0.4);
+        #emailTable {
+            table-layout: auto;
+            border-collapse: separate;
+            border-spacing: 0;
         }
-        .btn-success {
-            background-color: #28a745;
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-        .btn-success:hover {
-            background-color: #218838;
-            box-shadow: 0 6px 16px rgba(33, 136, 56, 0.4);
-        }
-        .icon-btn {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        #file-count {
-            font-size: 16px;
-            margin-top: 10px;
-            color: #06c;
-        }
-        .header-banner {
-            font-size: 25px;
-            font-weight: 600;
-            color: #1d1d1f;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .main-container {
-            display: flex;
-            width: 80%;
-            max-width: 1200px;
-            margin-top: 40px;
-            gap: 20px;
-        }
-
-        .upload-section, .json-viewer {
-            flex: 1;
-        }
-        h2 {
-            color: #1d1d1f;
+        .dropzone-container-modern {
+            border: 2px dashed rgba(79, 70, 229, 0.4);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px 30px;
             text-align: center;
-            font-size: 24px;
-            font-weight: 600;
+            transition: all 0.3s;
             margin-bottom: 20px;
         }
-
-        #json-container {
-            padding: 20px;
-            background: #f0f0f3;
+        .dropzone-container-modern.dragover {
+            background: rgba(240, 244, 255, 0.95);
+            border-color: rgba(59, 130, 246, 0.9);
+        }
+        .btn-browse {
+            margin-top: 12px;
+        }
+        .btn-primary, .btn-success {
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .progress-container {
+            margin-top: 16px;
+            display: none;
+        }
+        .progress-bar-custom {
+            background: linear-gradient(90deg, rgba(79,70,229,1), rgba(59,130,246,1));
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
             border-radius: 12px;
-            font-size: 14px;
-            color: #333;
-            overflow-x: auto;
-            max-height: 700px;
-            box-shadow: inset 0px 3px 6px rgba(0, 0, 0, 0.1);
+            transition: width 0.4s ease;
         }
-
-        /* Hover effect */
-        .container:hover {
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        .duplicate-info {
+            background: #fff7f0;
+            box-shadow: 0 2px 10px rgba(240, 160, 100, 0.1);
+            color: #7a4b00;
+            padding: 14px 20px;
+            border-radius: 16px;
+            margin-top: 24px;
+            box-shadow: 0 4px 18px rgba(255, 200, 140, 0.2);
+            font-weight: 500;
+            display: none;
+            text-align: center;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
         }
-
-        /* JSON Key Colors */
-        .json-key {
-            color: #007aff !important; /* Apple Blue */
+        .duplicate-info i {
+            margin-right: 10px;
+            color: #ff9800;
+            text-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
         }
-
-        .json-value {
-            color: #1c1c1e !important; /* Dark Grey */
-        }
-
-        .json-string {
-            color: #28a745 !important; /* Green */
+        .duplicate-info.show {
+            display: block;
+            animation: fadeInScale 0.4s ease forwards;
         }
         .json-literal{
-            color: #28a745 !important;
+            color: #0B7500 !important;
+        }
+        #file-count {
+            color: #0d6efd !important;
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body>
-    <div class="header">Smart Email Orchestrator</div>
-    <div class="main-container">
-        
-        <!-- Upload Section -->
-        <div class="upload-section">
-            <div class="glass-card">
-                <div class="header-banner" style="text-align: center;">
-                    Upload Your Emails
-                </div>
 
-                <p class="text-muted" style="text-align: center;">Select a folder containing `.eml` files</p>
-                
-                <form id="upload-form" enctype="multipart/form-data" style="text-align: center;">
-                    <label class="dropzone" id="dropzone"><i class="fas fa-cloud-upload-alt"></i> Drag & Drop Files Here or Click to Upload Folder</label>
-                    <input type="file" id="file-input" webkitdirectory directory multiple hidden>
-                    <p id="file-count" style="text-align: center;">No files selected</p>
-                    <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fas fa-upload"></i> Upload & Process</button>
-                </form>
-                <div id="result" class="mt-4"></div>
+<div class="hero-banner">
+    <h1>Smart Email Orchestrator</h1>
+    <p>Analyze, classify, and visualize business emails with AI</p>
+</div>
+
+<div class="container my-4">
+    <div class="row info-cards mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card p-3">
+                <i class="fas fa-folder-open fa-2x text-primary mb-2"></i>
+                <h6>Upload Emails</h6>
+                <p class="small">Drag & drop or browse folders with .eml files.</p>
             </div>
         </div>
-
-        <!-- JSON Viewer Section -->
-        <div class="json-viewer">
-            <h4 style="text-align: center;" class="json-container-cls">Orchestrated JSON Data</h4>
-            <div id="duplicate-container" style="background: #f0f0f3;padding: 1% 1% 0.5% 2%;border-radius: 12px;font-size: 14px;max-height: 90px;"></div>
-            <div id="json-container" class="json-container-cls"></div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <i class="fas fa-cogs fa-2x text-success mb-2"></i>
+                <h6>AI Processing</h6>
+                <p class="small">An AI system that analyzes emails and attachments to identify reuest type, extract key attributes, classify reuqests, detect duplicates, and smartly determine the right departmnet based on skill, roles for routing. </p>
+            </div>
         </div>
-        
+        <div class="col-md-4">
+            <div class="card p-3">
+                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                <h6>Visual Reports</h6>
+                <p class="small">View AI extracted reports with Request type classification, Key data and Advanced Route Detection.</p>
+            </div>
+        </div>
     </div>
 
-    <script>
-        $(function () {
-     $('#duplicate-container').hide();
-     $('.json-container-cls').hide();
- });
-        const dropzone = document.getElementById("dropzone");
-        const fileInput = document.getElementById("file-input");
-        const form = document.getElementById("upload-form");
-        const resultDiv = document.getElementById("result");
-        const fileCount = document.getElementById("file-count");
+    <div class="text-center">
+        <div class="dropzone-container-modern" id="dropzone">
+            <i class="fas fa-cloud-upload-alt mb-2"></i>
+            <h5>Drag & drop files here</h5>
+            <p class="small text-muted">or use the button below to select folder from your computer</p>
+            <button class="btn btn-outline-primary btn-browse" id="browse-btn">Browse Files</button>
+            <input type="file" id="file-input" webkitdirectory directory multiple hidden>
+            <p id="file-count" class="text-muted mt-2 small">No files selected</p>
+        </div>
+        <button class="btn btn-primary mt-3" id="process-btn"><i class="fas fa-sync-alt"></i> Upload & Process</button>
+        <div class="progress-container">
+            <div class="progress mt-3" style="height: 18px; border-radius: 12px; background: rgba(220, 220, 220, 0.4);">
+                <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 0%" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
 
-        dropzone.addEventListener("click", () => fileInput.click());
-        dropzone.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            dropzone.classList.add("dragover");
-        });
-        dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
-        dropzone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            fileInput.files = e.dataTransfer.files;
-            dropzone.classList.remove("dragover");
-            updateFileCount();
-        });
+    <div class="duplicate-info text-danger" id="duplicate-info">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span id="duplicate-message">Duplicate Emails Detected</span>
+    </div>
 
-        fileInput.addEventListener("change", updateFileCount);
+    <div class="output-tabs mt-4">
+        <ul class="nav nav-tabs nav-fill mb-3" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#json-result">JSON View</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#grid-result">Grid View</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="json-result">
+                <div id="json-container" style="max-height: 450px; overflow: auto;"></div>
+            </div>
+            <div class="tab-pane fade" id="grid-result">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="emailTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Request Type</th>
+                                <th scope="col">Sender's Intent</th>
+                                <th scope="col">Department</th>
+                                <th scope="col">Subject</th>
+                                <th scope="col">Sub Request Type</th>
+                                <th scope="col">Confidence Score</th>
+                                <th scope="col">Reasoning</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
 
-        function updateFileCount() {
-            const count = fileInput.files.length;
-            fileCount.textContent = count > 0 ? `${count} file(s) selected` : "No files selected";
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(function () {
+    const dropzone = $('#dropzone');
+    const fileInput = $('#file-input');
+    const fileCount = $('#file-count');
+    const browseBtn = $('#browse-btn');
+    const progressContainer = $('.progress-container');
+    const progressBar = $('#progress-bar');
+
+    browseBtn.on('click', () => fileInput.click());
+
+    dropzone.on('dragover', function (e) {
+        e.preventDefault();
+        dropzone.addClass('dragover');
+    });
+    dropzone.on('dragleave', function () {
+        dropzone.removeClass('dragover');
+    });
+    dropzone.on('drop', function (e) {
+        e.preventDefault();
+        dropzone.removeClass('dragover');
+        const files = e.originalEvent.dataTransfer.files;
+        fileInput[0].files = files;
+        updateFileCount();
+    });
+
+    fileInput.on('change', updateFileCount);
+
+    function updateFileCount() {
+        const count = fileInput[0].files.length;
+        fileCount.text(count > 0 ? `${count} file(s) selected` : 'No files selected');
+    }
+
+    $('#process-btn').on('click', async function () {
+        if (fileInput[0].files.length === 0) {
+            alert('Please select or drop .eml files.');
+            return;
         }
-        function fetchJSONData() {
+        const formData = new FormData();
+        Array.from(fileInput[0].files).forEach(file => formData.append('files', file));
 
-            $.ajax({
-                url: "/get_json_data", // Ensure this endpoint returns valid JSON
-                method: "GET",
-                dataType: "json",
-                success: function (data) {
-                    console.log("Received JSON:", data); // Debugging log
-                    if(data){
-                    $('.json-container-cls').show();
-                    $("#json-container").jsonViewer(data, { collapsed: false, withQuotes: true }); 
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error fetching JSON:", error);
-                    $("#json-container").text("Error loading JSON: " + error);
-                }
-            });
+        progressContainer.show();
+        progressBar.css('width', '0%');
 
-            $.ajax({
-                url: "/get_duplicate_data", // Ensure this endpoint returns valid JSON
-                method: "GET",
-                dataType: "text",
-                success: function (data) {
-                    if(data && JSON.parse(data).length > 0){
-                    console.log("Received JSON:", data); // Debugging log
-                    $('#duplicate-container').show();
-                    $("#duplicate-container").html("<p style='color:red'>Duplaicates detected: </p><p>"+JSON.parse(data).join(",")+"</p>");
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error fetching JSON:", error);
-                    
-                }
-            });
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress = Math.min(progress + Math.random() * 10, 90);
+            progressBar.css('width', `${progress}%`);
+        }, 300);
+
+        await fetch('/upload', { method: 'POST', body: formData });
+
+        clearInterval(interval);
+        progressBar.css('width', '100%');
+        setTimeout(() => progressContainer.hide(), 1200);
+
+        fetchJSONData();
+        fetchDuplicateData();
+    });
+
+    async function fetchJSONData() {
+    const response = await fetch('/get_json_data');
+    const data = await response.json();
+    $('#json-container').jsonViewer(data, { collapsed: false });
+
+    const tableBody = $('#emailTable tbody');
+    tableBody.empty();
+
+    data.forEach(item => {
+        tableBody.append(`
+            <tr>
+                <td>${item.request_type || ''}</td>
+                <td>${item.senders_intent || ''}</td>
+                <td>${item.department || ''}</td>
+                <td>${item.subject || ''}</td>
+                <td>${item.sub_request_type || ''}</td>
+                <td>${item.confidence_score || ''}</td>
+                <td>${item.reasoning || ''}</td>
+            </tr>
+        `);
+    });
+}
+    async function fetchDuplicateData() {
+        const response = await fetch('/get_duplicate_data');
+        const duplicates = await response.json();
+        if (duplicates.length > 0) {
+            $('#duplicate-info').addClass('show').html(
+                `<i class="fas fa-exclamation-triangle"></i> Duplicate Emails Detected: ${duplicates.join(', ')}`
+            );
+        } else {
+            $('#duplicate-info').removeClass('show').fadeOut();
         }
-
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-           
-            const files = fileInput.files;
-            if (files.length === 0) {
-                alert("Please select a folder containing .eml files.");
-                return;
-            }
-
-            const formData = new FormData();
-            for (let file of files) {
-                formData.append("files", file);
-            }
-
-            resultDiv.innerHTML = "<p class='text-primary' style='text-align: center;'>Processing emails...</p>";
-
-            const response = await fetch("/upload", {
-                method: "POST",
-                body: formData
-            });
-
-            const result = await response.json();
-            resultDiv.innerHTML = `<p class='text-success' style="text-align: center;">Processing complete!</p>
-                                   <div class='icon-btn'>
-                                      
-                                       <a href='#' onclick="fetchJSONData()" class='btn btn-success' style="text-align: center;"><i class="fas fa-eye"></i> View Results</a>
-                                   </div>`;
-        });
-    </script>
+    }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
 </body>
 </html>
