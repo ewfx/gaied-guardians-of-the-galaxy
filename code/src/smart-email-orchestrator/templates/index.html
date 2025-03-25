@@ -170,7 +170,7 @@
                 <p class="text-muted" style="text-align: center;">Select a folder containing `.eml` files</p>
                 
                 <form id="upload-form" enctype="multipart/form-data" style="text-align: center;">
-                    <label class="dropzone" id="dropzone"><i class="fas fa-cloud-upload-alt"></i> Drag & Drop Folder Here or Click to Upload</label>
+                    <label class="dropzone" id="dropzone"><i class="fas fa-cloud-upload-alt"></i> Drag & Drop Files Here or Click to Upload Folder</label>
                     <input type="file" id="file-input" webkitdirectory directory multiple hidden>
                     <p id="file-count" style="text-align: center;">No files selected</p>
                     <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fas fa-upload"></i> Upload & Process</button>
@@ -181,13 +181,18 @@
 
         <!-- JSON Viewer Section -->
         <div class="json-viewer">
-            <h4 style="text-align: center;">Orchestarted JSON Data</h4>
-            <div id="json-container">[]</div>
+            <h4 style="text-align: center;" class="json-container-cls">Orchestrated JSON Data</h4>
+            <div id="duplicate-container" style="background: #f0f0f3;padding: 1% 1% 0.5% 2%;border-radius: 12px;font-size: 14px;max-height: 90px;"></div>
+            <div id="json-container" class="json-container-cls"></div>
         </div>
         
     </div>
 
     <script>
+        $(function () {
+     $('#duplicate-container').hide();
+     $('.json-container-cls').hide();
+ });
         const dropzone = document.getElementById("dropzone");
         const fileInput = document.getElementById("file-input");
         const form = document.getElementById("upload-form");
@@ -221,11 +226,31 @@
                 dataType: "json",
                 success: function (data) {
                     console.log("Received JSON:", data); // Debugging log
+                    if(data){
+                    $('.json-container-cls').show();
                     $("#json-container").jsonViewer(data, { collapsed: false, withQuotes: true }); 
+                    }
                 },
                 error: function (xhr, status, error) {
                     console.error("Error fetching JSON:", error);
                     $("#json-container").text("Error loading JSON: " + error);
+                }
+            });
+
+            $.ajax({
+                url: "/get_duplicate_data", // Ensure this endpoint returns valid JSON
+                method: "GET",
+                dataType: "text",
+                success: function (data) {
+                    if(data && JSON.parse(data).length > 0){
+                    console.log("Received JSON:", data); // Debugging log
+                    $('#duplicate-container').show();
+                    $("#duplicate-container").html("<p style='color:red'>Duplaicates detected: </p><p>"+JSON.parse(data).join(",")+"</p>");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching JSON:", error);
+                    
                 }
             });
         }

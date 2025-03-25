@@ -3,7 +3,7 @@ from flask import request, render_template, jsonify, send_file, Blueprint
 import os
 import shutil
 from werkzeug.utils import secure_filename
-from app.utils.email_extraction import process_emails
+from app.utils.email_extraction import process_emails,getDupliactes,resetDupliactes
 from app import app
 
 bp = Blueprint('main', __name__)
@@ -20,7 +20,8 @@ def upload():
 
     shutil.rmtree(app.config["UPLOAD_FOLDER"])  # Clean previous files
     os.makedirs(app.config["UPLOAD_FOLDER"])
-
+    resetDupliactes()
+    
     for file in request.files.getlist("files"):
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
@@ -49,6 +50,10 @@ def view_output():
 def get_json_data():
     processed_data = load_json()
     return jsonify(processed_data)
+
+@bp.route("/get_duplicate_data")
+def get_duplicate_data():
+    return getDupliactes()
 
 
 @app.route("/download")
