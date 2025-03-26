@@ -9,6 +9,8 @@ from email.header import decode_header
 from app.utils.classification import classify_email, generate_intent_and_reasoning
 from app.models import load_config
 from app import app
+import PyPDF2
+from docx import Document
 
 
 CONFIG = load_config("config.json")
@@ -43,6 +45,8 @@ def get_email_body(msg):
                 return part.get_payload(decode=True).decode(errors="ignore")
     return msg.get_payload(decode=True).decode(errors="ignore")
 
+
+
 def extract_attachments(msg):
     attachments = []
     current_directory = os.getcwd()  # Get the current working directory
@@ -50,12 +54,12 @@ def extract_attachments(msg):
 
     # Create 'attc' folder if it doesn't exist
     os.makedirs(attachment_folder, exist_ok=True)
-    
+
     for part in msg.walk():
         content_disposition = part.get("Content-Disposition")
         if content_disposition and "attachment" in content_disposition.lower():
             filename = part.get_filename()
-            
+
             # Decode the filename if it is encoded
             if filename:
                 decoded_filename = decode_header(filename)
@@ -65,23 +69,51 @@ def extract_attachments(msg):
                 )
 
                 filepath = os.path.join(attachment_folder, filename)
-                
+
                 # Ensure unique filenames to avoid overwriting
                 base, ext = os.path.splitext(filename)
                 counter = 1
                 while os.path.exists(filepath):
                     filepath = os.path.join(attachment_folder, f"{base}_{counter}{ext}")
                     counter += 1
-                
-                # Save the file
+
+                # Save the file and parse content
                 try:
+                    content = part.get_payload(decode=True)
                     with open(filepath, "wb") as f:
-                        f.write(part.get_payload(decode=True))
-                    attachments.append(filepath)  # Store full file path for reference
+                        f.write(content)
+
+                    parsed_text = None
+                    if ext.lower() == ".txt":
+                        parsed_text = content.decode("utf-8", errors="ignore")
+                    elif ext.lower() == ".pdf":
+                        try:
+                            with open(filepath, "rb") as pdf_file:
+                                reader = PyPDF2.PdfReader(pdf_file)
+                                parsed_text = " ".join(
+                                    page.extract_text() for page in reader.pages if page.extract_text()
+                                )
+                        except Exception as e:
+                            parsed_text = None
+                    elif ext.lower() == ".docx":
+                        try:
+                            doc = Document(filepath)
+                            parsed_text = " ".join([p.text for p in doc.paragraphs])
+                        except Exception as e:
+                            parsed_text = None
+
+                    attachments.append({
+                        "file_path": filepath,
+                        "file_name": filename,
+                        "file_content": content,
+                        "parsed_text": parsed_text
+                    })
+
                 except Exception as e:
-                    print(f"Error saving attachment {filename}: {e}")
-    
+                    print(f"Error saving or reading attachment {filename}: {e}")
+
     return attachments
+
 
 def generate_email_hash(msg):
     email_content = f"{msg['subject']}{msg['from']}{msg['date']}{get_email_body(msg)}"
@@ -190,13 +222,26 @@ def process_emails(upload_folder, config):
             #classification = advanced_classify_email(email_data)
             try:
                 extracted_fields = extract_fields(email_data["body"])
+                extracted_fields_attch = {}
+    
+                for attachment in email_data["attachments"]:
+                    if "parsed_text" in attachment:
+                       extracted_fields_attch.update(extract_fields(attachment["parsed_text"]))
+    
+                # Consolidate both dictionaries, giving priority to extracted_fields_attch
+                extracted_fields = {**extracted_fields, **extracted_fields_attch}
+                
+                # Remove duplicate keys by ensuring only unique keys remain
+                extracted_fields = {key: value for key, value in extracted_fields.items() if key not in extracted_fields_attch or extracted_fields_attch[key] != value}
+                
             except Exception as e:
                 print(f"Error extracting fields from email body: {e}")
                 extracted_fields = {}
+                extracted_fields_attch = {}
             sender_intent, reasoning = generate_intent_and_reasoning(email_data["body"])
             
 # Handle list of attachments
-            attachment_filenames = [os.path.basename(attachment) for attachment in email_data["attachments"]]
+            attachment_filenames = [os.path.basename(attachment["file_path"]) for attachment in email_data["attachments"]]
             result = {
                "file": filename, "subject": email_data["subject"],
                 "request_type": classification["request_type"], "sub_request_type": classification["sub_request_type"],
