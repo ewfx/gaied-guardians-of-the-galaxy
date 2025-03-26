@@ -24,7 +24,7 @@ The system also handles complex email scenarios, including:
    
 🖼️ Screenshots:
 
-![Homepage](artifacts/images/homepage.png)
+![Homepage](artifacts/demo/homepage.png)
 
 ### Video Demos
 - [Duplicate Mails](artifacts/demo/DuplicateMails.mp4)
