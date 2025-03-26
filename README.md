@@ -21,12 +21,16 @@ The system also handles complex email scenarios, including:
 - Duplicate Email Detection: Recognizes duplicate emails from multiple replies or forwards within the same thread to reduce redundancy.
 - Priority-based Extraction: Prioritizes extraction rules to ensure critical information is processed first, such as extracting numerical fields from attachments.
 
-## 🎥 Demo
-🔗 [Live Demo](#) (if applicable)  
-📹 [Video Demo](#) (if applicable)  
+   
 🖼️ Screenshots:
 
-![Screenshot 1](link-to-image)
+![Homepage](artifacts/images/homepage.png)
+
+### Video Demos
+- [Duplicate Mails](artifacts/demo/DuplicateMails.mp4)
+- [Introduction](artifacts/demo/introduction.mp4)
+- [Multiple Mails With Attachments](artifacts/demo/MultipleMails-WithAttachments.mp4)
+- [Uploading Mail Folder](artifacts/demo/UploadingMailFolder.mp4)
 
 ## 💡 Inspiration
 - Automate the extraction and classification of email content.
