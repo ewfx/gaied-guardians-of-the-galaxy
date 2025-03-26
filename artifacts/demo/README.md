@@ -9,9 +9,9 @@ This folder contains Demo Videos of each scenario and test artifacts with screen
   - [Duplicate Mails](DuplicateMails.mp4)
   - [Multiple Mails With Attachments](MultipleMails-WithAttachments.mp4)
 - **Screenshots**: Images showcasing different scenarios of the application.
- - [Test Artifacts](test_artifacts.docx)
+ - [Test Artifacts](TestArtifacts_SMART_EMAIL_ORCHESTRATOR.docx)
 - **Presentation Deck**: A presentation in pptx format describing the solution.
-  - [Presentation Deck](presentation_deck.pptx)
+  - [Presentation Deck](Smart-Email-Orchestrator-AI-Powered-Email-Classification.pptx)
 - **Test Data**: Documents and files used for validating each scenario.
  
   - [Test Data Folder](test_data/)
