@@ -9,6 +9,8 @@ from email.header import decode_header
 from app.utils.classification import classify_email, generate_intent_and_reasoning
 from app.models import load_config
 from app import app
+import PyPDF2
+from docx import Document
 
 
 CONFIG = load_config("config.json")
@@ -43,6 +45,8 @@ def get_email_body(msg):
                 return part.get_payload(decode=True).decode(errors="ignore")
     return msg.get_payload(decode=True).decode(errors="ignore")
 
+
+
 def extract_attachments(msg):
     attachments = []
     current_directory = os.getcwd()  # Get the current working directory
@@ -50,12 +54,12 @@ def extract_attachments(msg):
 
     # Create 'attc' folder if it doesn't exist
     os.makedirs(attachment_folder, exist_ok=True)
-    
+
     for part in msg.walk():
         content_disposition = part.get("Content-Disposition")
         if content_disposition and "attachment" in content_disposition.lower():
             filename = part.get_filename()
-            
+
             # Decode the filename if it is encoded
             if filename:
                 decoded_filename = decode_header(filename)
@@ -65,23 +69,56 @@ def extract_attachments(msg):
                 )
 
                 filepath = os.path.join(attachment_folder, filename)
-                
+
                 # Ensure unique filenames to avoid overwriting
                 base, ext = os.path.splitext(filename)
                 counter = 1
                 while os.path.exists(filepath):
                     filepath = os.path.join(attachment_folder, f"{base}_{counter}{ext}")
                     counter += 1
-                
-                # Save the file
+
+                # Save the file and parse content
                 try:
+                    content = part.get_payload(decode=True)
                     with open(filepath, "wb") as f:
-                        f.write(part.get_payload(decode=True))
-                    attachments.append(filepath)  # Store full file path for reference
+                        f.write(content)
+
+                    parsed_text = None
+                    if ext.lower() == ".txt":
+                        parsed_text = content.decode("utf-8", errors="ignore")
+                    elif ext.lower() == ".pdf":
+                        try:
+                            with open(filepath, "rb") as pdf_file:
+                                reader = PyPDF2.PdfReader(pdf_file)
+                                parsed_text = " ".join(
+                                    page.extract_text() for page in reader.pages if page.extract_text()
+                                )
+                        except PyPDF2.errors.PdfReadError as e:
+                            print(f"Error extracting text from {filepath}: {e}")
+                            parsed_text = None
+                        except Exception as e:
+                            print(f"Unexpected error processing PDF {filepath}: {e}")
+                            parsed_text = None
+                    elif ext.lower() == ".docx":
+                        try:
+                            doc = Document(filepath)
+                            parsed_text = " ".join([p.text for p in doc.paragraphs])
+                        except Exception as e:
+                            print(f"Error extracting text from DOCX {filepath}: {e}")
+                            parsed_text = None
+
+                    attachments.append({
+                        "file_path": filepath,
+                        "file_name": filename,
+                        "file_content": content,
+                        "parsed_text": parsed_text
+                    })
+
                 except Exception as e:
-                    print(f"Error saving attachment {filename}: {e}")
-    
+                    print(f"Error saving or reading attachment {filename}: {e}")
+
     return attachments
+
 
 def generate_email_hash(msg):
     email_content = f"{msg['subject']}{msg['from']}{msg['date']}{get_email_body(msg)}"
@@ -95,19 +132,19 @@ def extract_fields(email_body):
     regex_patterns = {
     "amount": r"(?i)\b(?:amount|total):?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
     "due_date": r"(?i)\b(?:due date|payment date):?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
-    "customer_id": r"(?i)\b(?:customer ID|account ID):?\s?(\w+)\b",
+    "customer_id": r"(?im)^customer id:?\s*([A-Z0-9]+)$",
     "account_number": r"(?i)\b(?:account number|acc no):?\s?(\d+)\b",
     "loan_number": r"(?i)\b(?:loan number|loan ID):?\s?(\d+)\b",
     "disbursement_date": r"(?i)\b(?:disbursement date):?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
-    "old_address": r"(?i)\bold address:?\s?(.+)",
-    "new_address": r"(?i)\bnew address:?\s?(.+)",
+    "old_address": r"(?im)^old( residential)? address:?\s*\n((?:.+\n)+?)(?=\n|^|\w+[:])",
+    "new_address": r"(?im)^new( residential)? address:?\s*\n((?:.+\n)+?)(?=\n|^|\w+[:])",
     "contact_number": r"(?i)\b(?:contact number|phone):?\s?(\d{10,15})\b",
     "old_contact_number": r"(?i)\bold contact number:?\s?(\d{10,15})\b",
     "new_contact_number": r"(?i)\bnew contact number:?\s?(\d{10,15})\b",
     "email": r"(?i)\b(?:email|email address):?\s?([\w.-]+@[\w.-]+)\b",
     "old_email": r"(?i)\bold email:?\s?([\w.-]+@[\w.-]+)\b",
     "new_email": r"(?i)\bnew email:?\s?([\w.-]+@[\w.-]+)\b",
-    "name": r"(?i)\b(?:name|customer name):?\s?([A-Za-z .']+)\b",
+    "name": r"(?im)^name:?\s*([A-Za-z .'-]+)$",
     "branch": r"(?i)\bbranch:?\s?([A-Za-z0-9 &.-]+)\b",
     "Insurance": r"(?i)\b(?:insurance|insurance type):?\s?([A-Za-z ]+)\b",
     "Policy Number": r"(?i)\bpolicy number:?\s?(\w+)\b",
@@ -163,7 +200,7 @@ def extract_fields(email_body):
     for field in fields:
         pattern = regex_patterns.get(field)
         if pattern:
-            match = re.search(pattern, email_body)
+            match = re.search(pattern, email_body, re.MULTILINE)
             if match:
                 extracted_data[field] = match.group(1)
 
@@ -186,23 +223,40 @@ def process_emails(upload_folder, config):
                 continue  # Skip duplicate emails
             
             seen_hashes.add(email_data["hash"])
-            classification = classify_email(email_data,upload_folder)
-            #classification = advanced_classify_email(email_data)
+            classification = classify_email(email_data, upload_folder)
+            # classification = advanced_classify_email(email_data)
             try:
-                extracted_fields = extract_fields(email_data["body"])
+                extracted_fields = extract_fields(email_data["body"]) if email_data["body"] else {}
+                extracted_fields_attch = {}
+    
+                for attachment in email_data["attachments"]:
+                    if "parsed_text" in attachment and attachment["parsed_text"]:
+                        extracted_fields_attch.update(extract_fields(attachment["parsed_text"]))
+                
+                # Consolidate both dictionaries, giving priority to extracted_fields_attch
+                extracted_fields = {**extracted_fields, **extracted_fields_attch}
+                
+                # Remove duplicate keys by ensuring only unique keys remain
+                # Combine both dictionaries, giving priority to attachment fields if duplicates are found
+                combined_fields = extracted_fields.copy()
+                for key, value in extracted_fields_attch.items():
+                   if key not in combined_fields or combined_fields[key] != value:
+                     combined_fields[key] = value
+
             except Exception as e:
                 print(f"Error extracting fields from email body: {e}")
                 extracted_fields = {}
+                extracted_fields_attch = {}
             sender_intent, reasoning = generate_intent_and_reasoning(email_data["body"])
             
-# Handle list of attachments
-            attachment_filenames = [os.path.basename(attachment) for attachment in email_data["attachments"]]
+            # Handle list of attachments
+            attachment_filenames = [os.path.basename(attachment["file_path"]) for attachment in email_data["attachments"]]
             result = {
                "file": filename, "subject": email_data["subject"],
                 "request_type": classification["request_type"], "sub_request_type": classification["sub_request_type"],
                 "confidence_score": classification["confidence_score"], "attachments": attachment_filenames,
-                "senders_intent": sender_intent, "department": classification["department"],"reasoning": reasoning,
-                **extracted_fields
+                "senders_intent": sender_intent, "department": classification["department"], "reasoning": reasoning,
+                **combined_fields
             }
 
             results.append(result)
@@ -211,4 +265,5 @@ def process_emails(upload_folder, config):
         json.dump(results, file, indent=2)
 
     return results
+
 

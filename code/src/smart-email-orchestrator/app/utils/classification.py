@@ -40,7 +40,7 @@ def classify_email(email_data, UPLOAD_FOLDER):
 
     content_sources = [email_data["body"]]
     for attachment in email_data["attachments"]:
-        attachment_path = os.path.join(UPLOAD_FOLDER, attachment)
+        attachment_path = os.path.join(UPLOAD_FOLDER, attachment["file_name"])
         content_sources.append(extract_text_from_attachment(attachment_path))
     
     candidate_labels = [req["request_type"] for req in CONFIG["request_types"]]
