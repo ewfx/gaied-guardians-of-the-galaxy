@@ -6,7 +6,6 @@
 - [Inspiration](#inspiration)
 - [What It Does](#what-it-does)
 - [How We Built It](#how-we-built-it)
-- [Challenges We Faced](#challenges-we-faced)
 - [How to Run](#how-to-run)
 - [Tech Stack](#tech-stack)
 - [Team](#team)
@@ -121,5 +120,4 @@ classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnl
 - 🔹 Other: pandas, numpy
 
 ## 👥 Team
-- **Your Name** - [GitHub](#) | [LinkedIn](#)
-- **Teammate 2** - [GitHub](#) | [LinkedIn](#)
+- Guardians of the Galaxy
