@@ -93,11 +93,71 @@ def extract_fields(email_body):
     fields = CONFIG["email_processing"]["extract_fields"]
 
     regex_patterns = {
-        "amount": r"(?i)\b(?:amount|total):?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
-        "due_date": r"(?i)\b(?:due date|payment date):?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
-        "customer_id": r"(?i)\b(?:customer ID|account ID):?\s?(\w+)\b",
-        "account_number": r"(?i)\b(?:account number|acc no):?\s?(\d+)\b",
-        "loan_number": r"(?i)\b(?:loan number|loan ID):?\s?(\d+)\b"
+    "amount": r"(?i)\b(?:amount|total):?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "due_date": r"(?i)\b(?:due date|payment date):?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "customer_id": r"(?i)\b(?:customer ID|account ID):?\s?(\w+)\b",
+    "account_number": r"(?i)\b(?:account number|acc no):?\s?(\d+)\b",
+    "loan_number": r"(?i)\b(?:loan number|loan ID):?\s?(\d+)\b",
+    "disbursement_date": r"(?i)\b(?:disbursement date):?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "old_address": r"(?i)\bold address:?\s?(.+)",
+    "new_address": r"(?i)\bnew address:?\s?(.+)",
+    "contact_number": r"(?i)\b(?:contact number|phone):?\s?(\d{10,15})\b",
+    "old_contact_number": r"(?i)\bold contact number:?\s?(\d{10,15})\b",
+    "new_contact_number": r"(?i)\bnew contact number:?\s?(\d{10,15})\b",
+    "email": r"(?i)\b(?:email|email address):?\s?([\w.-]+@[\w.-]+)\b",
+    "old_email": r"(?i)\bold email:?\s?([\w.-]+@[\w.-]+)\b",
+    "new_email": r"(?i)\bnew email:?\s?([\w.-]+@[\w.-]+)\b",
+    "name": r"(?i)\b(?:name|customer name):?\s?([A-Za-z .']+)\b",
+    "branch": r"(?i)\bbranch:?\s?([A-Za-z0-9 &.-]+)\b",
+    "Insurance": r"(?i)\b(?:insurance|insurance type):?\s?([A-Za-z ]+)\b",
+    "Policy Number": r"(?i)\bpolicy number:?\s?(\w+)\b",
+    "Claim Number": r"(?i)\bclaim number:?\s?(\w+)\b",
+    "Claim Amount": r"(?i)\bclaim amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "Claim Type": r"(?i)\bclaim type:?\s?([A-Za-z ]+)\b",
+    "Claim Date": r"(?i)\bclaim date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "Claim Status": r"(?i)\bclaim status:?\s?([A-Za-z ]+)\b",
+    "pending_amount": r"(?i)\bpending amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "pending_date": r"(?i)\bpending date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "pending_status": r"(?i)\bpending status:?\s?([A-Za-z ]+)\b",
+    "status": r"(?i)\bstatus:?\s?([A-Za-z ]+)\b",
+    "transaction_id": r"(?i)\btransaction ID:?\s?(\w+)\b",
+    "transaction_date": r"(?i)\btransaction date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "transaction_amount": r"(?i)\btransaction amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "payment_reference_number": r"(?i)\bpayment reference number:?\s?(\w+)\b",
+    "payment_date": r"(?i)\bpayment date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "payment_status": r"(?i)\bpayment status:?\s?([A-Za-z ]+)\b",
+    "payment_method": r"(?i)\bpayment method:?\s?([A-Za-z ]+)\b",
+    "ifsc_code": r"(?i)\bIFSC code:?\s?([A-Z]{4}0[0-9A-Z]{6})\b",
+    "swift_code": r"(?i)\bswift code:?\s?([A-Za-z0-9]+)\b",
+    "bank_name": r"(?i)\bbank name:?\s?([A-Za-z0-9 &.-]+)\b",
+    "bank_branch": r"(?i)\bbank branch:?\s?([A-Za-z0-9 &.-]+)\b",
+    "bank_address": r"(?i)\bbank address:?\s?(.+)",
+    "bank_account_number": r"(?i)\bbank account number:?\s?(\d+)\b",
+    "bank_account_type": r"(?i)\bbank account type:?\s?([A-Za-z ]+)\b",
+    "bank_account_holder_name": r"(?i)\bbank account holder name:?\s?([A-Za-z .']+)\b",
+    "bank_account_holder_type": r"(?i)\bbank account holder type:?\s?([A-Za-z ]+)\b",
+    "card_number": r"(?i)\bcard number:?\s?(\d{4} \d{4} \d{4} \d{4}|\d{16})\b",
+    "emi_amount": r"(?i)\bEMI amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "emi_due_date": r"(?i)\bEMI due date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "emi_status": r"(?i)\bEMI status:?\s?([A-Za-z ]+)\b",
+    "interest_rate": r"(?i)\binterest rate:?\s?(\d+(?:\.\d+)?%)\b",
+    "maturity_date": r"(?i)\bmaturity date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "tenure": r"(?i)\btenure:?\s?(\d+ (?:months|years))\b",
+    "total_outstanding": r"(?i)\btotal outstanding:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "available_balance": r"(?i)\bavailable balance:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "last_payment_date": r"(?i)\blast payment date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "last_payment_amount": r"(?i)\blast payment amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "statement_period": r"(?i)\bstatement period:?\s?([A-Za-z0-9/ -]+)\b",
+    "relationship_number": r"(?i)\brelationship number:?\s?(\w+)\b",
+    "credit_score": r"(?i)\bcredit score:?\s?(\d{3})\b",
+    "credit_limit": r"(?i)\bcredit limit:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "investment_folio_number": r"(?i)\binvestment folio number:?\s?(\w+)\b",
+    "investment_scheme_name": r"(?i)\binvestment scheme name:?\s?([A-Za-z0-9 &.-]+)\b",
+    "investment_amount": r"(?i)\binvestment amount:?\s?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\b",
+    "investment_date": r"(?i)\binvestment date:?\s?(\d{1,2}/\d{1,2}/\d{2,4})\b",
+    "nominee_name": r"(?i)\bnominee name:?\s?([A-Za-z .']+)\b",
+    "nominee_relationship": r"(?i)\bnominee relationship:?\s?([A-Za-z ]+)\b",
+    "escalation_contact": r"(?i)\bescalation contact:?\s?(\d{10,15})\b"
     }
 
     for field in fields:
@@ -128,7 +188,11 @@ def process_emails(upload_folder, config):
             seen_hashes.add(email_data["hash"])
             classification = classify_email(email_data,upload_folder)
             #classification = advanced_classify_email(email_data)
-            extracted_fields = extract_fields(email_data["body"])
+            try:
+                extracted_fields = extract_fields(email_data["body"])
+            except Exception as e:
+                print(f"Error extracting fields from email body: {e}")
+                extracted_fields = {}
             sender_intent, reasoning = generate_intent_and_reasoning(email_data["body"])
             
 # Handle list of attachments
@@ -137,7 +201,8 @@ def process_emails(upload_folder, config):
                "file": filename, "subject": email_data["subject"],
                 "request_type": classification["request_type"], "sub_request_type": classification["sub_request_type"],
                 "confidence_score": classification["confidence_score"], "attachments": attachment_filenames,
-                "senders_intent": sender_intent, "department": classification["department"],"reasoning": reasoning
+                "senders_intent": sender_intent, "department": classification["department"],"reasoning": reasoning,
+                **extracted_fields
             }
 
             results.append(result)
