@@ -1,0 +1,23 @@
+Subject: Loan Closure
+From: user@example.com
+To: customer@domain.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Dear Customer,
+
+Your request has been processed as follows:
+
+Request Type: Loan Servicing
+Sub-Request Type: Loan Closure
+Amount: Not Found
+Due Date: 2025-04-01
+Customer ID: 12345
+Account Number: 9876543210
+Loan Number: L123456789
+
+If you have any questions, please contact us.
+
+Best regards,
+Bank Support Team

@@ -1,0 +1,13 @@
+[
+  {
+    "file": "loan_closure.eml",
+    "subject": "Loan Closure",
+    "request_type": "Loan Closure",
+    "sub_request_type": "Regular Closure",
+    "confidence_score": 58.53383004665375,
+    "attachments": [],
+    "senders_intent": "Request",
+    "department": "Loan Operations",
+    "reasoning": "The email is classified as 'Request' because it discusses request matters."
+  }
+]
