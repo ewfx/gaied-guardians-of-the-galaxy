@@ -14,4 +14,4 @@ This folder contains Demo Videos of each scenario and test artifacts with screen
   - [Presentation Deck](Smart-Email-Orchestrator-AI-Powered-Email-Classification.pptx)
 - **Test Data**: Documents and files used for validating each scenario.
  
-  - [Test Data Folder](test_data/)
+  - [Test Data Folder](TestData/)
